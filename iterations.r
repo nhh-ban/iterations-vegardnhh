@@ -39,6 +39,7 @@ source("functions/data_transformations.r")
 stations_metadata_df <- 
   stations_metadata %>% 
   transform_metadata_to_df(.)
+stations_metadata_df
 
 
 #### 3: Testing metadata
