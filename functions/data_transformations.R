@@ -28,7 +28,20 @@ to_iso8601 <- function(datetime, offset_days) {
   return(iso_datetime)
 }
 
-GQL(
+transform_volumes <- function(volumes) {
+  df <- volumes$trafficData$volume$byHour$edges %>%
+    map_df(~{
+      tibble(
+        from = .x$node$from %>% as_datetime() %>% force_tz(tzone = "UTC"),
+        to = .x$node$to %>% as_datetime() %>% force_tz(tzone = "UTC"),
+        volume = .x$node$total$volumeNumbers$volume
+      )
+    })
+  
+  return(df)
+}
+
+test <- GQL(
   vol_qry(
     id=stations_metadata_df$id[1], 
     from=to_iso8601(stations_metadata_df$latestData[1],-4),
@@ -36,3 +49,5 @@ GQL(
   ),
   .url = configs$vegvesen_url
 )
+
+transform_volumes(test)
