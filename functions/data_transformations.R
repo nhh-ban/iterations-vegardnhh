@@ -28,15 +28,20 @@ to_iso8601 <- function(datetime, offset_days) {
   return(iso_datetime)
 }
 
-transform_volumes <- function(volumes) {
-  df <- volumes$trafficData$volume$byHour$edges %>%
-    map_df(~{
+transform_volumes <- function(traffic_data) {
+  # Extract the relevant data 
+  volume_data <- traffic_data$trafficData$volume$byHour$edges
+  
+  # Transform the list to a tibble/data frame
+  df <- volume_data %>% 
+    map(function(x) {
       tibble(
-        from = .x$node$from %>% as_datetime() %>% force_tz(tzone = "UTC"),
-        to = .x$node$to %>% as_datetime() %>% force_tz(tzone = "UTC"),
-        volume = .x$node$total$volumeNumbers$volume
+        from = as_datetime(x$node$from),
+        to = as_datetime(x$node$to),
+        volume = x$node$total$volumeNumbers$volume
       )
-    })
+    }) %>% 
+    list_rbind()
   
   return(df)
 }
