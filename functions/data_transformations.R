@@ -18,4 +18,13 @@ transform_metadata_to_df <- function(stations_metadata) {
   return(df)
 }
 
+to_iso8601 <- function(datetime, offset_days) {
+  # Add offset to the original datetime
+  adjusted_datetime <- datetime + lubridate::days(offset_days)
+  
+  # Convert to ISO8601 format
+  iso_datetime <- format(adjusted_datetime, format = "%Y-%m-%dT%H:%M:%SZ")
+  
+  return(iso_datetime)
+}
 
