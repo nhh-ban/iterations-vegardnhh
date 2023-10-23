@@ -9,6 +9,7 @@ library(lubridate)
 library(anytime)
 library(readr)
 library(yaml)
+library(glue)
 
 #### 1: Beginning of script
 
@@ -47,23 +48,31 @@ test_stations_metadata(stations_metadata_df)
 
 
 ### 5: Final volume query: 
-
 source("gql-queries/vol_qry.r")
-
+source("functions/data_transformations.r")
 stations_metadata_df %>% 
   filter(latestData > Sys.Date() - days(7)) %>% 
-  sample_n(1) %$% 
-  vol_qry(
-    id = id,
-    from = to_iso8601(latestData, -4),
-    to = to_iso8601(latestData, 0)
-  ) %>% 
-  GQL(., .url = configs$vegvesen_url) %>%
-  transform_volumes() %>% 
-  ggplot(aes(x=from, y=volume)) + 
-  geom_line() + 
-  theme_classic()
-
+  sample_n(1) %$% {
+    station_name <- name 
+    
+    vol_qry(
+      id = id,
+      from = to_iso8601(latestData, -4),
+      to = to_iso8601(latestData, 0)
+    ) %>% 
+      GQL(., .url = configs$vegvesen_url) %>%
+      transform_volumes() %>% 
+      ggplot(aes(x=from, y=volume, color=station_name)) + 
+      geom_line() + 
+      labs(
+        color = "Station Name", 
+        title = "Traffic Volume over Time",
+        x = "Time",
+        y = "Volume"
+      ) +
+      scale_color_manual(values = "blue") + # Set a single color, or add more if dealing with multiple lines
+      theme_classic()
+  }
 
 
 
